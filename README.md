@@ -51,9 +51,3 @@ Copyright © 2025. The Stdlib [Authors][stdlib-authors].
 </section>
 
 <!-- /.links -->
-
-[stdlib-authors]: https://github.com/stdlib-js/stdlib/graphs/contributors
-
-[stdlib-license]: https://raw.githubusercontent.com/stdlib-js/stdlib/develop/LICENSE
-
-[stdlib-governance]: https://raw.githubusercontent.com/stdlib-js/stdlib/develop/GOVERNANCE.md
