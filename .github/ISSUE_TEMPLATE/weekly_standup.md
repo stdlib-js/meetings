@@ -36,3 +36,5 @@ _Copy and paste the template below, and answer questions as needed!_
 ### :dart: Task Status
 
 Please make sure pull request labels and draft status reflect the current status of your work!
+
+@gsoc-2026
