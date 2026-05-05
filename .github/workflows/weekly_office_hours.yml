@@ -29,6 +29,13 @@ on:
   # Allow the workflow to be manually run:
   workflow_dispatch:
 
+# Global permissions:
+permissions:
+  # Allow read-only access to the repository contents:
+  contents: read
+  # Allow write access to issues:
+  issues: write
+
 # Workflow jobs:
 jobs:
 
@@ -53,116 +60,15 @@ jobs:
       # Generate the issue body with computed dates and timezone conversions:
       - name: 'Generate office hours issue body'
         id: generate
-        run: |
-          python3 << 'PYEOF'
-          import datetime
-          import zoneinfo
-          import os
-
-          # Compute the date of the next Tuesday (7 days out when run on Tuesday):
-          today = datetime.date.today()
-          days_until_tuesday = (1 - today.weekday()) % 7
-          if days_until_tuesday == 0:
-              days_until_tuesday = 7
-          next_tuesday = today + datetime.timedelta(days=days_until_tuesday)
-
-          # Meeting time is 9:30 AM US/Pacific; DST is handled automatically:
-          pacific_tz = zoneinfo.ZoneInfo('America/Los_Angeles')
-          meeting_dt = datetime.datetime(
-              next_tuesday.year, next_tuesday.month, next_tuesday.day,
-              9, 30, 0, tzinfo=pacific_tz
-          )
-
-          utc_dt = meeting_dt.astimezone(datetime.timezone.utc)
-
-          def fmt_time(dt):
-              return dt.strftime('%H:%M (%I:%M %p)')
-
-          utc_header = '**UTC {} {}**:'.format(
-              utc_dt.strftime('%a %d-%b-%Y'),
-              fmt_time(utc_dt)
-          )
-
-          timezones = [
-              ('US / Pacific',  'America/Los_Angeles'),
-              ('US / Mountain', 'America/Denver'),
-              ('US / Central',  'America/Chicago'),
-              ('US / Eastern',  'America/New_York'),
-              ('EU / Western',  'Europe/London'),
-              ('EU / Central',  'Europe/Paris'),
-              ('EU / Eastern',  'Europe/Helsinki'),
-              ('Moscow',        'Europe/Moscow'),
-              ('Chennai',       'Asia/Kolkata'),
-              ('Hangzhou',      'Asia/Shanghai'),
-              ('Tokyo',         'Asia/Tokyo'),
-              ('Sydney',        'Australia/Sydney'),
-          ]
-
-          table_rows = []
-          for tz_name, tz_id in timezones:
-              local_dt = meeting_dt.astimezone(zoneinfo.ZoneInfo(tz_id))
-              table_rows.append('| {} | {} {} |'.format(
-                  tz_name,
-                  local_dt.strftime('%a %d-%b-%Y'),
-                  fmt_time(local_dt)
-              ))
-
-          date_str = next_tuesday.strftime('%Y-%m-%d')
-          iso_str = utc_dt.strftime('%Y%m%dT%H%M')
-          timeanddate_url = (
-              'https://www.timeanddate.com/worldclock/fixedtime.html'
-              '?msg=stdlib%20Office+Hours+{}&iso={}'.format(date_str, iso_str)
-          )
-
-          body = """\
-## \U0001f31f Join Us for Weekly Office Hours! \U0001f31f
-
-Have questions about [stdlib](https://github.com/stdlib-js/stdlib)? Need help fixing a bug, figuring out what to do next, or just looking for feedback? Join our weekly office hours to connect with project maintainers, stay updated on the latest project news, and chat with other community members. This is a great opportunity to ask questions, share ideas, and engage directly with the stdlib team.
-
-Everyone is welcome—drop in and say hello!
-
-## Time
-
-{utc_header}
-
-| Timezone | Date/Time |
-| ---------- | ---------- |
-{table}
-
-or in your local time:
-
--   <{url}>
-
-## Links
-
--   Public calendar: <https://calendar.google.com/calendar/embed?src=a72677fe2820c833714b8b9a2aa87393f742bcaf0d0f6c9499eee6661795eae0%40group.calendar.google.com>
-
-## Joining the meeting
-
--   Google Meet link: <https://meet.google.com/yct-chmu-owx>
-
-## Agenda
-
--   Have specific things to discuss? Please comment in the issue thread below to add specific items to the agenda.
-""".format(
-              utc_header=utc_header,
-              table='\n'.join(table_rows),
-              url=timeanddate_url
-          )
-
-          with open('office_hours_body.md', 'w') as f:
-              f.write(body)
-
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-              f.write('meeting_date={}\n'.format(date_str))
-
-          PYEOF
+        run: python3 .github/workflows/scripts/weekly_office_hours/run
+        timeout-minutes: 5
 
       # Create an issue:
       - name: 'Create issue'
 
         # Pin action to full length commit SHA
         uses: peter-evans/create-issue-from-file@d60bea1e77c1b5c523216f7c31493883d76ffad7 # v4.0.1
+        timeout-minutes: 5
         with:
           title: Office Hours (${{ steps.generate.outputs.meeting_date }})
           content-filepath: ./office_hours_body.md
