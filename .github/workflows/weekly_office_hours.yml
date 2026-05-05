@@ -46,8 +46,8 @@ jobs:
       # Checkout the repository:
       - name: 'Checkout repository'
 
-        # Version 4.0
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
+        # Pin action to full length commit SHA
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0
         timeout-minutes: 10
 
       # Generate the issue body with computed dates and timezone conversions:
@@ -161,8 +161,8 @@ or in your local time:
       # Create an issue:
       - name: 'Create issue'
 
-        # Version 4.0.1
-        uses: peter-evans/create-issue-from-file@d60bea1e77c1b5c523216f7c31493883d76ffad7
+        # Pin action to full length commit SHA
+        uses: peter-evans/create-issue-from-file@d60bea1e77c1b5c523216f7c31493883d76ffad7 # v4.0.1
         with:
           title: Office Hours (${{ steps.generate.outputs.meeting_date }})
           content-filepath: ./office_hours_body.md
