@@ -37,4 +37,4 @@ _Copy and paste the template below, and answer questions as needed!_
 
 Please make sure pull request labels and draft status reflect the current status of your work!
 
-@gsoc-2026
+@stdlib-js/gsoc-2026
