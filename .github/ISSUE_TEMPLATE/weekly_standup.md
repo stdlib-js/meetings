@@ -13,6 +13,16 @@ _Copy and paste the template below, and answer questions as needed!_
 
 - I worked on <link-to-pull-request>
 
+**🕵️ Pull requested I reviewed**
+
+- I reviewed and provided feedback on the following PRs:
+
+  - <link-to-pull-request>
+
+**🧑‍🎓 One thing I learned last week**
+
+- I learned...
+
 **🔭 My plan for the current week**
 
 - I plan on working on...
