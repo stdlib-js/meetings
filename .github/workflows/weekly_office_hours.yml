@@ -33,6 +33,7 @@ on:
 permissions:
   # Allow read-only access to the repository contents:
   contents: read
+
   # Allow write access to issues:
   issues: write
 
