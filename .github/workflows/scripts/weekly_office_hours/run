@@ -1,0 +1,141 @@
+#!/usr/bin/env python
+#
+# @license Apache-2.0
+#
+# Copyright (c) 2026 The Stdlib Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Script to generate an office hours GitHub issue body for the next Tuesday.
+#
+# Environment variables:
+#
+#   GITHUB_OUTPUT   Path to the GitHub Actions output file.
+#
+# Outputs:
+#
+#   office_hours_body.md   Markdown file containing the issue body.
+#   meeting_date           GitHub Actions step output with the meeting date (YYYY-MM-DD).
+
+import datetime
+import os
+import zoneinfo
+
+
+# VARIABLES #
+
+# Compute the date of the next Tuesday (7 days out when run on Tuesday):
+today = datetime.date.today()
+days_until_tuesday = (1 - today.weekday()) % 7
+if days_until_tuesday == 0:
+    days_until_tuesday = 7
+next_tuesday = today + datetime.timedelta(days=days_until_tuesday)
+
+# Meeting time is 9:30 AM US/Pacific; DST is handled automatically:
+pacific_tz = zoneinfo.ZoneInfo('America/Los_Angeles')
+meeting_dt = datetime.datetime(
+    next_tuesday.year, next_tuesday.month, next_tuesday.day,
+    9, 30, 0, tzinfo=pacific_tz
+)
+
+utc_dt = meeting_dt.astimezone(datetime.timezone.utc)
+
+timezones = [
+    ('US / Pacific',  'America/Los_Angeles'),
+    ('US / Mountain', 'America/Denver'),
+    ('US / Central',  'America/Chicago'),
+    ('US / Eastern',  'America/New_York'),
+    ('EU / Western',  'Europe/London'),
+    ('EU / Central',  'Europe/Paris'),
+    ('EU / Eastern',  'Europe/Helsinki'),
+    ('Moscow',        'Europe/Moscow'),
+    ('Chennai',       'Asia/Kolkata'),
+    ('Hangzhou',      'Asia/Shanghai'),
+    ('Tokyo',         'Asia/Tokyo'),
+    ('Sydney',        'Australia/Sydney'),
+]
+
+date_str = next_tuesday.strftime('%Y-%m-%d')
+iso_str = utc_dt.strftime('%Y%m%dT%H%M')
+
+
+# FUNCTIONS #
+
+def fmt_time(dt):
+    return dt.strftime('%H:%M (%I:%M %p)')
+
+
+# MAIN #
+
+utc_header = '**UTC {} {}**:'.format(
+    utc_dt.strftime('%a %d-%b-%Y'),
+    fmt_time(utc_dt)
+)
+
+table_rows = []
+for tz_name, tz_id in timezones:
+    local_dt = meeting_dt.astimezone(zoneinfo.ZoneInfo(tz_id))
+    table_rows.append('| {} | {} {} |'.format(
+        tz_name,
+        local_dt.strftime('%a %d-%b-%Y'),
+        fmt_time(local_dt)
+    ))
+
+timeanddate_url = (
+    'https://www.timeanddate.com/worldclock/fixedtime.html'
+    '?msg=stdlib%20Office+Hours+{}&iso={}'.format(date_str, iso_str)
+)
+
+body = """\
+## \U0001f31f Join Us for Weekly Office Hours! \U0001f31f
+
+Have questions about [stdlib](https://github.com/stdlib-js/stdlib)? Need help fixing a bug, figuring out what to do next, or just looking for feedback? Join our weekly office hours to connect with project maintainers, stay updated on the latest project news, and chat with other community members. This is a great opportunity to ask questions, share ideas, and engage directly with the stdlib team.
+
+Everyone is welcome—drop in and say hello!
+
+## Time
+
+{utc_header}
+
+| Timezone | Date/Time |
+| ---------- | ---------- |
+{table}
+
+or in your local time:
+
+-   <{url}>
+
+## Links
+
+-   Public calendar: <https://calendar.google.com/calendar/embed?src=a72677fe2820c833714b8b9a2aa87393f742bcaf0d0f6c9499eee6661795eae0%40group.calendar.google.com>
+
+## Joining the meeting
+
+-   Google Meet link: <https://meet.google.com/yct-chmu-owx>
+
+## Agenda
+
+-   Have specific things to discuss? Please comment in the issue thread below to add specific items to the agenda.
+""".format(
+    utc_header=utc_header,
+    table='\n'.join(table_rows),
+    url=timeanddate_url
+)
+
+with open('office_hours_body.md', 'w') as f:
+    f.write(body)
+
+github_output = os.environ.get('GITHUB_OUTPUT')
+if github_output:
+    with open(github_output, 'a') as f:
+        f.write('meeting_date={}\n'.format(date_str))
