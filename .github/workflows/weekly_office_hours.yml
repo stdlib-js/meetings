@@ -60,7 +60,7 @@ jobs:
       # Generate the issue body with computed dates and timezone conversions:
       - name: 'Generate office hours issue body'
         id: generate
-        run: python3 .github/workflows/scripts/weekly_office_hours/run
+        run: python .github/workflows/scripts/weekly_office_hours/run
         timeout-minutes: 5
 
       # Create an issue:
